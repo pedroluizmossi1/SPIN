@@ -2,8 +2,8 @@ from fastapi import routing, HTTPException, Body
 from typing import Annotated
 from mongo.endpoints_core import Endpoints
 from mongo.connections_core import Connections
+from database_bridge import Engine
 
-from sqlalchemy import create_engine, text
 
 
 endpoints_router = routing.APIRouter(
@@ -49,16 +49,9 @@ async def execute_endpoint(id: str):
     try:
         endpoint = Endpoints().get(id)
         if endpoint:
-            connection = Connections().get(endpoint.connection_id)
-            if connection:
-                if connection.conn_type == "POSTGRESQL":
-                    engine = create_engine(f'postgresql://{connection.username}:{connection.password}@{connection.host}/{connection.database}')
-                    with engine.connect() as conn:
-                        sql = text(endpoint.sql)
-                        sql = conn.execute(sql)
-                        print(sql)
-            else:
-                return HTTPException(status_code=500, detail="Connection not found")
+            engine = Engine(connection_id=endpoint.connection_id)
+            df = engine.execute(endpoint.sql)
+            return df.to_dict(orient="records")
         else:
             return HTTPException(status_code=500, detail="Endpoint not found")
     except Exception as e:

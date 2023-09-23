@@ -93,11 +93,11 @@ class Connections(BaseModel):
     
     def list(self):
         list_return = CONNECTIONS_COLLECTION.find()
-        user_list = []
-        for user in list_return:
-            user["_id"] = str(user["_id"])
-            user_list.append(user)
-        return user_list
+        connection_list = []
+        for connection in list_return:
+            connection["_id"] = str(connection["_id"])
+            connection_list.append(connection)
+        return connection_list
     
     def get(self, id):
         connection = CONNECTIONS_COLLECTION.find_one({"_id": ObjectId(id)})
